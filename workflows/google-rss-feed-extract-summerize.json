@@ -1,0 +1,695 @@
+{
+  "name": "Google RSS Feed extract and summerize",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "2a793478-b688-4744-b58b-ed5f2abaf4a4",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        592,
+        1424
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "maxItems": 5
+      },
+      "id": "f6ceb217-b9f9-4797-8b4d-4aa32c3ba43f",
+      "name": "Limit",
+      "type": "n8n-nodes-base.limit",
+      "position": [
+        1072,
+        1184
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss",
+        "options": {
+          "ignoreSSL": false
+        }
+      },
+      "id": "a971d6da-7eed-4686-992d-dd0a47577117",
+      "name": "Reading Google News RSS",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "position": [
+        880,
+        1184
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c51f320e-4fb8-4bd4-8e36-9330e251936e",
+              "name": "google_news_url",
+              "type": "string",
+              "value": "={{ JSON.parse(JSON.parse($json.data.split('\\n\\n')[1])[0][2])[1] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e4f9b49a-b2b4-4b68-a2cd-722004660eaa",
+      "name": "Decoded url",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1552,
+        1616
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://news.google.com/_/DotsSplashUi/data/batchexecute",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded;charset=UTF-8"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.google.com/"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "f.req",
+              "value": "={{ $json.f_req }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "41eb7608-84dc-4f47-a32c-cab77fee76dc",
+      "name": "Call decoding URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1312,
+        1616
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n    const gn_art_id = item.json.base64Str;\n    const timestamp = item.json.timestamp;\n    const signature = item.json.signature;\n\n    const articlesReq = [\n        'Fbv4je',\n        `[\"garturlreq\",[[\"X\",\"X\",[\"X\",\"X\"],null,null,1,1,\"US:en\",null,1,null,null,null,null,null,0,1],\"X\",\"X\",1,[1,1,1],1,1,null,0,0,null,0],\"${gn_art_id}\",${timestamp},\"${signature}\"]`,\n    ];\n\n    return {\n        json: {\n            f_req: JSON.stringify([[articlesReq]])  // Questo verrà usato nel nodo HTTP Request\n        }\n    };\n});"
+      },
+      "id": "28ba12aa-75b2-4b13-9746-37a69ed48351",
+      "name": "Prepare decoding variables",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1072,
+        1616
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Limit').item.json.link }}",
+        "options": {}
+      },
+      "id": "957d3f37-7982-4156-961a-c8ae99863cfb",
+      "name": "Get encoded news URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1312,
+        1184
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "content": "## Get Google News\n\nChange the language parameters on ISO639-1 standard \n\n1. hl=it\n2. gl=IT\n3. ceid=IT:it",
+        "height": 400,
+        "width": 220
+      },
+      "id": "425ae0f8-ccb7-44be-ad02-29258e87112d",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        944
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Limit result\n\nI suggest limiting the results to a maximum of 3 because the entire workflow makes a lot of HTTP requests",
+        "height": 400,
+        "width": 220
+      },
+      "id": "fc6f94c7-0290-4851-a739-f612012e59c6",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1008,
+        944
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## INFO\n\nDisclaimer:\nYou can add a cron trigger but... don't do too often: Google could block your ip.\n\nThis workflow works until works: the decoding procedure is hardcoded and based on reverse engineering. Requests and responses are not documented by Google.\n\n\n",
+        "height": 820,
+        "width": 220,
+        "color": 5
+      },
+      "id": "f66be24c-6ef6-475f-a861-959e3459ccc2",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        944
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Get encoded content\n\nHere we retrieve HTML content",
+        "height": 400,
+        "width": 220,
+        "color": 3
+      },
+      "id": "4ba1c7a8-5b91-4f1d-8993-311d8c413971",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1248,
+        944
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b5a11795-2bd1-412f-a215-f7402bece002",
+              "name": "signature",
+              "type": "string",
+              "value": "={{ $json.signature }}"
+            },
+            {
+              "id": "33267283-3ac8-4d65-9a01-c7f154a7d061",
+              "name": "timestamp",
+              "type": "string",
+              "value": "={{ $json.timestamp }}"
+            },
+            {
+              "id": "bff8f19a-30d6-4307-87da-9b98b26cee8b",
+              "name": "base64Str",
+              "type": "string",
+              "value": "={{ $('Limit').item.json.guid }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bbf44d74-ca33-4048-abe2-1d73da88db43",
+      "name": "Map needed keys",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        816,
+        1616
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "signature",
+              "cssSelector": "div",
+              "returnValue": "attribute",
+              "attribute": "data-n-a-sg"
+            },
+            {
+              "key": "timestamp",
+              "cssSelector": "div",
+              "returnValue": "attribute",
+              "attribute": "data-n-a-ts"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eb8e6c71-3aba-4d29-8f03-e22fe85415b8",
+      "name": "Extract decoding keys",
+      "type": "n8n-nodes-base.html",
+      "position": [
+        1552,
+        1184
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "content": "## Decoding Keys\n\nThe HTML content extracted contains the necessary variables for decoding:\n\n+ signature\n+ timestamp\n+ base64string (already in the URL)",
+        "height": 400,
+        "width": 220
+      },
+      "id": "d27f3212-c02a-4775-a970-b5f7f28d3540",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1488,
+        944
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Clean output\n\nMapping variables for easy utilization",
+        "height": 400,
+        "width": 220
+      },
+      "id": "f98f2941-9f7d-4a45-8092-2761a7b2d101",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        1376
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Preparing Request\n\nDecoding the request requires specific body content. Here, we build it using the decoding keys.",
+        "height": 400,
+        "width": 220,
+        "color": 3
+      },
+      "id": "5c295046-52bf-4330-80ae-f9a6d1cf58a5",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1008,
+        1376
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## This is decoding step\n\nSending a request to a specific Google decoding URL",
+        "height": 400,
+        "width": 220,
+        "color": 3
+      },
+      "id": "21cff8d5-b43f-4bb6-8edb-06d6fb526b74",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1248,
+        1376
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Cleaning URL\n\nGoogle adds some unwanted and random characters at the beginning of the URL",
+        "height": 400,
+        "width": 220
+      },
+      "id": "2fa3c65a-0d06-41f6-b7c9-2d862b9acf3b",
+      "name": "Sticky Note9",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1488,
+        1376
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## OUTPUT\n\nA lot of requests are made before getting clean News URLs.\n\nYou can add an HttpRequest and get News text with jina.ai, extract by using HTML node, or a custom node like https://www.npmjs.com/package/n8n-nodes-webpage-content-extractor\n\n",
+        "height": 820,
+        "width": 220,
+        "color": 4
+      },
+      "id": "3d4a4f3b-98b7-4357-94df-e729bdfb8da6",
+      "name": "Sticky Note10",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1728,
+        944
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "151cba9d-3bdc-4421-ac10-8f0de0c1561b",
+      "name": "Aggregate results in a single object",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [
+        1792,
+        1264
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.google_news_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2528,
+        1264
+      ],
+      "id": "770839d1-1831-4165-a1ed-0a1e944cbeae",
+      "name": "HTTP Request",
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.first().json.data;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        1264
+      ],
+      "id": "8a918260-e3c1-4ad4-89d7-8820338e7ed3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.data[0].google_news_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2240,
+        1472
+      ],
+      "id": "75ccfec8-4901-4237-9f4f-e8b97a065523",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.first().json.data;\n\n// Remove HTML tags\nlet text = html.replace(/<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>/gi, '');\ntext = text.replace(/<style\\b[^<]*(?:(?!<\\/style>)<[^<]*)*<\\/style>/gi, '');\ntext = text.replace(/<[^>]+>/g, ' ');\n\n// Decode HTML entities\ntext = text.replace(/&nbsp;/g, ' ')\n           .replace(/&amp;/g, '&')\n           .replace(/&lt;/g, '<')\n           .replace(/&gt;/g, '>')\n           .replace(/&quot;/g, '\"');\n\n// Clean whitespace\ntext = text.replace(/\\s+/g, ' ').trim();\n\nreturn [{ json: { text } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        1472
+      ],
+      "id": "42e4469b-d276-48a7-bda9-d5a798edd9a6",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "llama3.2:latest",
+          "mode": "list",
+          "cachedResultName": "llama3.2:latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=summerize the text i provide {{ $json.text }}, just give the summerized text output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.ollama",
+      "typeVersion": 1,
+      "position": [
+        2864,
+        1472
+      ],
+      "id": "7967db01-8045-46d0-893c-8bb6d781b431",
+      "name": "Message a model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all items with data\nconst items = $input.all();\nconst validItems = items.filter(item => item.json.data);\n\nreturn validItems.map(item => {\n  let html = item.json.data;\n  \n  // Remove unwanted sections\n  html = html.replace(/<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>/gi, '');\n  html = html.replace(/<style\\b[^<]*(?:(?!<\\/style>)<[^<]*)*<\\/style>/gi, '');\n  html = html.replace(/<nav\\b[^<]*(?:(?!<\\/nav>)<[^<]*)*<\\/nav>/gi, '');\n  html = html.replace(/<header\\b[^<]*(?:(?!<\\/header>)<[^<]*)*<\\/header>/gi, '');\n  html = html.replace(/<footer\\b[^<]*(?:(?!<\\/footer>)<[^<]*)*<\\/footer>/gi, '');\n  \n  // Extract article content or use full HTML\n  const articleMatch = html.match(/<article[^>]*>([\\s\\S]*?)<\\/article>/i);\n  let content = articleMatch ? articleMatch[1] : html;\n  \n  // Remove HTML tags and clean up\n  content = content\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"')\n    .replace(/\\s+/g, ' ')\n    .trim();\n  \n  return { json: { cleanText: content } };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2736,
+        1264
+      ],
+      "id": "42d1072d-05af-4d4f-818c-943b6b06ab6a",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "llama3.2:latest",
+          "mode": "list",
+          "cachedResultName": "llama3.2:latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=summerize the text i provide {{ $json.cleanText }}, just give the summerized text output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.ollama",
+      "typeVersion": 1,
+      "position": [
+        2960,
+        1264
+      ],
+      "id": "7357d7d8-909e-44de-8445-a9035bc80eea",
+      "name": "Message a model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Reading Google News RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Get encoded news URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reading Google News RSS": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decoded url": {
+      "main": [
+        [
+          {
+            "node": "Aggregate results in a single object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call decoding URL": {
+      "main": [
+        [
+          {
+            "node": "Decoded url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare decoding variables": {
+      "main": [
+        [
+          {
+            "node": "Call decoding URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get encoded news URL": {
+      "main": [
+        [
+          {
+            "node": "Extract decoding keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map needed keys": {
+      "main": [
+        [
+          {
+            "node": "Prepare decoding variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract decoding keys": {
+      "main": [
+        [
+          {
+            "node": "Map needed keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate results in a single object": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f5d091b0-5b77-4b53-adec-d8fe11866ca8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "3degavwo8eGMbibB",
+  "tags": []
+}
