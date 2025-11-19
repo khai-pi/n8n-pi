@@ -1,0 +1,233 @@
+{
+  "name": "Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "15d4e103-1da3-4526-bc2f-4103d100607b",
+      "name": "Telegram Trigger",
+      "webhookId": "15ac5b65-8667-42a0-93a3-819a5a0ba3f8",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6C3QStYG2QiZ65F",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.from.id }}",
+        "text": "Hi again",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        -192
+      ],
+      "id": "be8f80c9-496d-4714-8600-3baf2e672e20",
+      "name": "Send a text message",
+      "webhookId": "5f6b32de-9a42-4a0a-8e8c-e1fecc63244e",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6C3QStYG2QiZ65F",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "Hi",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ef6ba419-ef6d-4966-9bbe-921d613a66e6"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e3b4dba7-f968-41d3-91ab-128432563e54",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a8e8b5ed-1481-4017-9336-ac837d8a5613",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        144,
+        -16
+      ],
+      "id": "92eb5960-3770-4386-9967-c94683b35fd9",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "There is no menu yet, we are working on it",
+        "additionalFields": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        -16
+      ],
+      "id": "8e052db3-649c-4514-8b2e-d9e3c94d12b4",
+      "name": "Send a text message1",
+      "webhookId": "ceac15d2-4e11-4bb1-8cab-bad50175417d",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6C3QStYG2QiZ65F",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "=Automation incoming!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        176
+      ],
+      "id": "ef2d4123-fae2-4df4-89d1-28826a5ec167",
+      "name": "Send a text message2",
+      "webhookId": "bd156cf7-99ab-4ba1-9fa2-4bc5a603e8b4",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6C3QStYG2QiZ65F",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "66ea3646-069d-486f-b533-b7607594403b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b524b50c4c05f05848a8506b1f6868221429cb2a3a0da18362741aea3ae0000"
+  },
+  "id": "VTbIOdp4rttKgVIU",
+  "tags": []
+}
