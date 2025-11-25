@@ -148,3 +148,35 @@ services:
     image: ollama/ollama:rocm
     depends_on:
      - ollama-gpu-amd
+
+# Pull embedding model
+  ollama-pull-embeddings-cpu:
+    profiles: ["cpu"]
+    <<: *init-ollama
+    container_name: ollama-pull-embeddings
+    command:
+      - "-c"
+      - "sleep 5; ollama pull nomic-embed-text"
+    depends_on:
+      - ollama-pull-llama-cpu
+
+  ollama-pull-embeddings-gpu:
+    profiles: ["gpu-nvidia"]
+    <<: *init-ollama
+    container_name: ollama-pull-embeddings
+    command:
+      - "-c"
+      - "sleep 5; ollama pull nomic-embed-text"
+    depends_on:
+      - ollama-pull-llama-gpu
+
+  ollama-pull-embeddings-gpu-amd:
+    profiles: ["gpu-amd"]
+    <<: *init-ollama
+    container_name: ollama-pull-embeddings
+    image: ollama/ollama:rocm
+    command:
+      - "-c"
+      - "sleep 5; ollama pull nomic-embed-text"
+    depends_on:
+      - ollama-pull-llama-gpu-amd
