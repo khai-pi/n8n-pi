@@ -178,7 +178,7 @@
         "qdrantCollection": {
           "__rl": true,
           "mode": "list",
-          "value": ""
+          "value": "documents"
         },
         "options": {}
       },
