@@ -61,13 +61,13 @@ N8N_DEFAULT_BINARY_DATA_MODE=filesystem
 #### 🖥️ CPU-Only (Mac, Windows, Linux without GPU)
 
 ```bash
-docker-compose --profile cpu up -d
+docker compose --profile cpu up -d
 ```
 
 #### 🎮 NVIDIA GPU
 
 ```bash
-docker-compose --profile gpu-nvidia up -d
+docker compose --profile gpu-nvidia up -d
 ```
 
 > **Note:** First time GPU users should follow the [Ollama Docker GPU setup guide](https://github.com/ollama/ollama/blob/main/docs/docker.md).
@@ -75,7 +75,7 @@ docker-compose --profile gpu-nvidia up -d
 #### 🔴 AMD GPU (Linux only)
 
 ```bash
-docker-compose --profile gpu-amd up -d
+docker compose --profile gpu-amd up -d
 ```
 
 #### 🍎 Mac with Apple Silicon
@@ -84,7 +84,7 @@ Ollama can't access the GPU inside Docker on Mac. Two options:
 
 **Option 1: Run everything on CPU**
 ```bash
-docker-compose --profile cpu up -d
+docker compose --profile cpu up -d
 ```
 
 **Option 2: Run Ollama natively (faster)**
@@ -101,7 +101,7 @@ docker-compose --profile cpu up -d
    ```
 4. Start containers:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 5. After startup, update Ollama credentials in n8n:
    - Go to http://localhost:5678/home/credentials
@@ -112,10 +112,10 @@ docker-compose --profile cpu up -d
 
 ```bash
 # Check all services are running
-docker-compose ps
+docker compose ps
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Wait for model downloads to complete (first time only)
 docker logs ollama-pull-llama
@@ -238,7 +238,7 @@ docker compose --profile gpu-amd up -d
 
 **Solution**: Make sure you started with a profile:
 ```bash
-docker-compose --profile cpu up -d
+docker compose --profile cpu up -d
 ```
 
 ### Models Not Downloaded
